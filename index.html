@@ -103,6 +103,10 @@
   .avatar-card svg.portrait{width:100%; height:auto; display:block; border-radius:24px; background:color-mix(in srgb,var(--amber) 35%,var(--choc))}
   .avatar-card img.photo{width:100%; aspect-ratio:5/4; object-fit:cover; display:block; border-radius:24px; max-width:100%}
   .avatar-card.has-photo svg.portrait{display:none}
+  .avatar-card .swap{position:absolute; left:16px; top:16px; border:0; background:color-mix(in srgb,var(--ink) 55%,transparent); color:#FBF3E4; font:inherit; font-size:.76rem; font-weight:700; padding:7px 11px; border-radius:999px; cursor:pointer; backdrop-filter:blur(6px); letter-spacing:.02em}
+  .avatar-card .swap:hover, .avatar-card .swap:focus-visible{background:var(--amber); color:#2A1A10; outline:none}
+  .avatar-card img.photo{transition:opacity .35s}
+  .avatar-card img.photo.fade{opacity:0}
   .avatar-card{transition:transform .15s ease-out; transform-style:preserve-3d; will-change:transform}
   .progress{position:absolute; left:0; bottom:-1px; height:3px; width:0; background:linear-gradient(90deg,var(--amber),var(--mint)); transition:width .1s linear}
   .avatar-meta{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:18px}
@@ -256,11 +260,20 @@
   .chips .chip:nth-child(2){animation-delay:.35s}.chips .chip:nth-child(3){animation-delay:.42s}.chips .chip:nth-child(4){animation-delay:.49s}.chips .chip:nth-child(5){animation-delay:.56s}.chips .chip:nth-child(6){animation-delay:.63s}
   .rank-note{font-size:.82rem; color:var(--ink-2); margin-top:10px}
   @media print{
-    nav, .qnav, .theme-btn, .progress{display:none !important}
+    nav, .qnav, .theme-btn, .progress, .swap{display:none !important}
     body{padding:0; background:#fff; color:#2A1A10}
     section{padding-block:18px; break-inside:avoid}
-    .io.pre{opacity:1; transform:none}
-    .q{position:relative; opacity:1; transform:none; margin-bottom:10px}
+    .io.pre, .io{opacity:1 !important; transform:none !important; transition:none !important}
+    .rise, .chips .chip{animation:none !important; opacity:1 !important}
+    .rank .bar i{animation:none !important; transform:none !important}
+    .clock .prog{stroke-dashoffset:0 !important}
+    .q{position:relative !important; opacity:1 !important; transform:none !important; margin-bottom:10px; pointer-events:auto}
+    .avatar-card{transform:none !important; box-shadow:none}
+    .test, .fit, .day{grid-template-columns:1fr}
+    .g2, .g3, .shop, .inf, .flags, .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .clock{position:static}
+    .step .more{max-height:none !important}
+    .rk .why{max-height:none !important; margin-top:6px}
     .quotes{min-height:0}
     .step .more, .rk .why{max-height:none; margin-top:6px}
   }
@@ -380,7 +393,8 @@
 
     <div class="avatar-card rise d2" id="avatarCard">
       <div class="sticker">NSE C</div>
-      <img class="photo" id="photo" src="katherine.png" alt="Katherine" hidden>
+      <img class="photo" id="photo" src="katherine.jpg" alt="Katherine en la puerta de su cocina, a las 6 de la mañana" hidden>
+      <button class="swap" id="swapBtn" type="button" hidden aria-label="Cambiar entre foto e ilustración">Ver ilustración</button>
       <svg class="portrait" viewBox="0 0 400 320" role="img" aria-label="Ilustración de Katherine">
         <defs>
           <linearGradient id="hair" x1="0" x2="1"><stop offset="0" stop-color="#2A1A10"/><stop offset="1" stop-color="#4A2C1A"/></linearGradient>
@@ -666,9 +680,12 @@
 
   /* foto opcional: si existe katherine.png junto al archivo, reemplaza la ilustración */
   var photo=document.getElementById('photo'), card=document.getElementById('avatarCard');
-  photo.addEventListener('load',function(){ photo.hidden=false; card.classList.add('has-photo'); });
-  photo.addEventListener('error',function(){ photo.remove(); });
-  if(photo.complete && photo.naturalWidth>0){ photo.hidden=false; card.classList.add('has-photo'); }
+  var swapBtn=document.getElementById('swapBtn'), sources=['katherine.jpg','katherine-ilustracion.jpg'], si=0;
+  function showPhoto(){ photo.hidden=false; card.classList.add('has-photo'); swapBtn.hidden=false; }
+  photo.addEventListener('load',function(){ showPhoto(); photo.classList.remove('fade'); });
+  photo.addEventListener('error',function(){ if(si===0){ photo.remove(); swapBtn.remove(); } });
+  if(photo.complete && photo.naturalWidth>0){ showPhoto(); }
+  swapBtn.addEventListener('click',function(){ si=1-si; photo.classList.add('fade'); setTimeout(function(){ photo.src=sources[si]; },200); swapBtn.textContent=si?'Ver foto':'Ver ilustración'; });
 
   /* inclinación suave de la tarjeta */
   if(!reduce && window.matchMedia('(hover:hover)').matches){
@@ -680,7 +697,9 @@
   var prog=document.getElementById('progress');
   function onProg(){ var h=document.documentElement; var max=h.scrollHeight-h.clientHeight; prog.style.width=(max>0?(h.scrollTop/max)*100:0)+'%'; }
   window.addEventListener('scroll',onProg,{passive:true}); onProg();
-  document.getElementById('printBtn').addEventListener('click',function(){ window.print(); });
+  function prepPrint(){ els.forEach(function(el){el.classList.remove('pre')}); document.getElementById('rank').classList.add('animate'); document.getElementById('clock').classList.add('go'); document.querySelectorAll('.step').forEach(function(s){s.classList.add('open')}); document.querySelectorAll('.rk').forEach(function(r){r.classList.add('on')}); }
+  window.addEventListener('beforeprint',prepPrint);
+  document.getElementById('printBtn').addEventListener('click',function(){ prepPrint(); setTimeout(function(){ window.print(); },60); });
 
   /* reveal al hacer scroll (estado en reposo visible si no hay IO) */
   var els=document.querySelectorAll('.io');

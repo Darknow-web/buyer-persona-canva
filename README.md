@@ -4,7 +4,9 @@ Buyer persona interactivo y animado en un solo archivo HTML, sin build ni depend
 
 ## Archivos
 - `index.html`: la página completa. Tema claro/oscuro, línea de tiempo del día, ranking de decisión animado, test de lonchera con simulador de precio, carrusel de frases, señales rojas, bloque de encaje con ANDIBITE y botón para imprimir o guardar en PDF.
-- `katherine.png` (opcional): si colocas una imagen con este nombre junto a `index.html`, la página la usa como retrato en lugar de la ilustración. Formato recomendado: 5:4 (por ejemplo 1000 × 800 px).
+- `katherine.jpg`: retrato fotográfico (generado con Nano Banana, recortado para no mostrar logos de marcas). Es el que se muestra por defecto.
+- `katherine-ilustracion.jpg`: versión ilustrada. Un botón sobre la tarjeta permite alternar entre foto e ilustración.
+- Si quitas ambos archivos, la página vuelve a la ilustración SVG incluida en el HTML. Para reemplazar el retrato, guarda una imagen 5:4 (por ejemplo 1000 × 800 px) con el mismo nombre.
 
 ## Cómo verla
 Abre `index.html` en cualquier navegador. Las fuentes vienen de Google Fonts; sin conexión se usan las del sistema.
