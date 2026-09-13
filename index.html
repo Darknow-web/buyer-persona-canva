@@ -101,6 +101,10 @@
     background:radial-gradient(circle at 30% 30%, var(--amber) 0, transparent 60%); opacity:.55; z-index:-1;
   }
   .avatar-card svg.portrait{width:100%; height:auto; display:block; border-radius:24px; background:color-mix(in srgb,var(--amber) 35%,var(--choc))}
+  .avatar-card img.photo{width:100%; aspect-ratio:5/4; object-fit:cover; display:block; border-radius:24px; max-width:100%}
+  .avatar-card.has-photo svg.portrait{display:none}
+  .avatar-card{transition:transform .15s ease-out; transform-style:preserve-3d; will-change:transform}
+  .progress{position:absolute; left:0; bottom:-1px; height:3px; width:0; background:linear-gradient(90deg,var(--amber),var(--mint)); transition:width .1s linear}
   .avatar-meta{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:18px}
   .avatar-meta div{border-top:1px solid color-mix(in srgb,var(--bg) 25%,transparent); padding-top:8px}
   .avatar-meta small{display:block; font-size:.7rem; text-transform:uppercase; letter-spacing:.12em; opacity:.7}
@@ -140,13 +144,18 @@
   .clock .big{font-family:"Bricolage Grotesque",sans-serif; font-size:2.4rem; font-weight:800; line-height:1}
   .clock .big small{font-size:1rem; font-weight:600; opacity:.8}
   .clock p{font-size:.9rem; opacity:.85; max-width:22ch}
-  .steps{list-style:none; margin:0; padding:0; display:grid; gap:10px}
+  .steps{list-style:none; margin:0 0 0 8px; padding:0 0 0 18px; display:grid; gap:10px; border-left:2px solid var(--line); position:relative}
   .step{
-    padding:16px 18px;
+    padding:16px 18px; position:relative;
     background:var(--card); border:1px solid var(--line); border-radius:18px; cursor:pointer;
     transition:transform .25s, border-color .25s, box-shadow .25s;
   }
+  .step::before{content:""; position:absolute; left:-25px; top:24px; width:12px; height:12px; border-radius:50%; background:var(--bg); border:3px solid var(--line); transition:border-color .25s, background .25s, transform .25s}
+  .step:hover::before, .step.open::before, .step:focus-within::before{border-color:var(--amber); background:var(--amber); transform:scale(1.2)}
   .step:hover, .step:focus-within{transform:translateX(6px); border-color:var(--amber); box-shadow:var(--shadow)}
+  .step.open{border-color:var(--amber)}
+  .step .chev{position:absolute; right:16px; top:18px; width:18px; height:18px; color:var(--ink-2); transition:transform .3s}
+  .step.open .chev{transform:rotate(180deg); color:var(--amber)}
   .step .t{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:1.05rem; color:var(--amber)}
   .step .t small{display:block; font-family:"Figtree",sans-serif; font-weight:600; font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-2)}
   .step p{margin:0}
@@ -200,13 +209,17 @@
   .tg label{font-weight:600; cursor:pointer; flex:1}
   .tg label small{display:block; font-weight:500; opacity:.7; font-size:.8rem}
   .sw{position:relative; width:50px; height:28px; flex:0 0 auto}
-  .sw input{position:absolute; inset:0; opacity:0; margin:0; cursor:pointer}
-  .sw span{position:absolute; inset:0; border-radius:999px; background:color-mix(in srgb,var(--bg) 25%,transparent); transition:background .2s}
+  .sw input{position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; z-index:2; width:100%; height:100%}
+  .sw span{position:absolute; inset:0; border-radius:999px; background:color-mix(in srgb,var(--bg) 25%,transparent); transition:background .2s; pointer-events:none}
+  .sw input:disabled{cursor:not-allowed}
+  .tg:has(input:checked){border-color:color-mix(in srgb,var(--mint) 55%,transparent)}
   .sw span::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:var(--bg); transition:transform .25s cubic-bezier(.2,.8,.2,1)}
   .sw input:checked + span{background:var(--mint)}
   .sw input:checked + span::after{transform:translateX(22px)}
   .sw input:focus-visible + span{outline:2px solid var(--amber); outline-offset:2px}
   .verdict{border-radius:18px; padding:22px; background:color-mix(in srgb,var(--bg) 10%,transparent); border:1px solid color-mix(in srgb,var(--bg) 18%,transparent); min-height:100%}
+  .verdict.pop{animation:pop .45s cubic-bezier(.2,.8,.2,1)}
+  @keyframes pop{0%{transform:scale(.97); box-shadow:0 0 0 0 color-mix(in srgb,var(--amber) 50%,transparent)}100%{transform:none; box-shadow:0 0 0 14px transparent}}
   .verdict .st{display:inline-block; padding:6px 12px; border-radius:999px; font-weight:800; font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px; transition:background .3s}
   .verdict .st.ok{background:var(--mint); color:#fff}.verdict .st.no{background:var(--cherry); color:#fff}.verdict .st.mid{background:var(--amber); color:#2A1A10}
   .verdict h4{font-family:"Bricolage Grotesque",sans-serif; font-size:1.5rem; line-height:1.15; margin:0 0 10px; text-wrap:balance}
@@ -234,10 +247,27 @@
 
   /* ---------- influences ---------- */
   .inf{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
-  .inf .card{position:relative; overflow:hidden}
-  .inf .w{position:absolute; right:14px; top:14px; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:var(--bg-2); color:var(--ink-2)}
+  .inf .card{position:relative; overflow:hidden; transition:transform .2s, border-color .2s}
+  .inf .card:hover{transform:translateY(-4px); border-color:var(--amber)}
+  .inf .ico{margin-bottom:12px}
+  .stat{transition:transform .2s}
+  .stat:hover{transform:translateY(-3px)}
+  .chips .chip{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+  .chips .chip:nth-child(2){animation-delay:.35s}.chips .chip:nth-child(3){animation-delay:.42s}.chips .chip:nth-child(4){animation-delay:.49s}.chips .chip:nth-child(5){animation-delay:.56s}.chips .chip:nth-child(6){animation-delay:.63s}
+  .rank-note{font-size:.82rem; color:var(--ink-2); margin-top:10px}
+  @media print{
+    nav, .qnav, .theme-btn, .progress{display:none !important}
+    body{padding:0; background:#fff; color:#2A1A10}
+    section{padding-block:18px; break-inside:avoid}
+    .io.pre{opacity:1; transform:none}
+    .q{position:relative; opacity:1; transform:none; margin-bottom:10px}
+    .quotes{min-height:0}
+    .step .more, .rk .why{max-height:none; margin-top:6px}
+  }
+  .inf .w{display:inline-block; margin-bottom:12px; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:var(--bg-2); color:var(--ink-2)}
   .inf .w.hi{background:var(--amber-soft); color:var(--amber)}
-  .inf h3{padding-right:90px}
+  .inf .card{display:flex; flex-direction:column; align-items:flex-start}
+  .inf .card p{align-self:stretch}
 
   /* ---------- quotes ---------- */
   .quotes{position:relative; min-height:200px}
@@ -324,8 +354,10 @@
       <li><a href="#voces">Voces</a></li>
       <li><a href="#fit">Por qué ANDIBITE</a></li>
     </ul>
+    <button class="theme-btn" id="printBtn" type="button" aria-label="Imprimir o guardar como PDF">⎙ PDF</button>
     <button class="theme-btn" id="themeBtn" type="button" aria-label="Cambiar tema">☾ Tema</button>
   </div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
 </nav>
 
 <main class="wrap">
@@ -346,8 +378,9 @@
       </div>
     </div>
 
-    <div class="avatar-card rise d2">
+    <div class="avatar-card rise d2" id="avatarCard">
       <div class="sticker">NSE C</div>
+      <img class="photo" id="photo" src="katherine.png" alt="Katherine" hidden>
       <svg class="portrait" viewBox="0 0 400 320" role="img" aria-label="Ilustración de Katherine">
         <defs>
           <linearGradient id="hair" x1="0" x2="1"><stop offset="0" stop-color="#2A1A10"/><stop offset="1" stop-color="#4A2C1A"/></linearGradient>
@@ -404,23 +437,23 @@
       </div>
 
       <ol class="steps">
-        <li class="step io pre"><button type="button" aria-expanded="false">
+        <li class="step io pre"><button type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="t">Noche<small>antes</small></div>
           <div><p>Se duerme pensando: «mañana le pico fruta fresca».</p><div class="more">La intención existe. Lo que falta no es voluntad, es tiempo y energía a las 6 de la mañana.</div></div>
         </button></li>
-        <li class="step io pre"><button type="button" aria-expanded="false">
+        <li class="step io pre"><button type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="t">6:00<small>a.m.</small></div>
           <div><p>Se levanta cansada. Diez minutos reales para la lonchera mientras alista a Adriano y se alista ella.</p><div class="more">Termina agarrando lo primero que hay en la alacena. Aquí se decide qué entra a la mochila.</div></div>
         </button></li>
-        <li class="step io pre"><button type="button" aria-expanded="false">
+        <li class="step io pre"><button type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="t">Mañana<small>paradero</small></div>
           <div><p>Sale corriendo al paradero. Compra al paso, antes de tomar el carro.</p><div class="more">La bodega de la esquina es su punto de compra diario. Lo que no está ahí, no existe para esa mañana.</div></div>
         </button></li>
-        <li class="step io pre"><button type="button" aria-expanded="false">
+        <li class="step io pre"><button type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="t">Día<small>en tienda</small></div>
           <div><p>Trabaja de pie todo el día en la tienda de Mega Plaza, con turno rotativo.</p><div class="more">Sin tiempo ni cabeza para pensar en la comida del niño hasta que vuelve a casa.</div></div>
         </button></li>
-        <li class="step io pre"><button type="button" aria-expanded="false">
+        <li class="step io pre"><button type="button" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="t">Tarde<small>la mochila</small></div>
           <div><p>Recién abre la mochila para ver si la lonchera volvió vacía o intacta.</p><div class="more">Si vuelve completa: el niño estuvo horas sin comer y se botó dinero. Es el momento donde se juega la culpa.</div></div>
         </button></li>
@@ -471,6 +504,7 @@
       <div class="rk" tabindex="0" style="--w:52%"><div class="n">4</div><div><div class="lbl">Aporte nutricional <small>Sobre todo hierro</small></div><div class="bar"><i></i></div></div><div class="why">La anemia es lo primero que asocia con «alimentación infantil». Quiere la tranquilidad de estar aportando algo real. Que sea peruano suma, pero no manda la decisión.</div></div>
       <div class="rk" tabindex="0" style="--w:36%"><div class="n">5</div><div><div class="lbl">Resistencia del empaque <small>Que llegue entero al recreo</small></div><div class="bar"><i></i></div></div><div class="why">Lo que se aplasta, se oscurece o se malogra antes del recreo vuelve intacto en la mochila.</div></div>
     </div>
+    <p class="rank-note io pre">El largo de cada barra muestra el orden de prioridad que ella describe, no un peso medido.</p>
     <div class="callout io pre">Si el producto es nutritivo pero el niño lo rechaza, para ella no existe.</div>
   </section>
 
@@ -542,10 +576,10 @@
       </div>
     </div>
     <div class="inf">
-      <div class="card io pre"><span class="w hi">Pesa más de lo que admite</span><h3>La profesora</h3><p class="muted">Una nota en la agenda de la auxiliar es una de las cosas que más le duele.</p></div>
-      <div class="card io pre"><span class="w hi">Juzgan</span><h3>Su mamá y su suegra</h3><p class="muted">Opinan sobre lo que manda y la hacen sentir juzgada.</p></div>
-      <div class="card io pre"><span class="w hi">Compara</span><h3>Los compañeros de Adriano</h3><p class="muted">El niño intercambia lonchera en el recreo; ella mira qué llevan los demás.</p></div>
-      <div class="card io pre"><span class="w">Ideas</span><h3>TikTok</h3><p class="muted">Para recetas. Abandona las que toman más de diez minutos.</p></div>
+      <div class="card io pre"><span class="w hi">Pesa más de lo que admite</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13"/><path d="M4 19h16M9 9h6M9 13h4"/></svg></div><h3>La profesora</h3><p class="muted">Una nota en la agenda de la auxiliar es una de las cosas que más le duele.</p></div>
+      <div class="card io pre"><span class="w hi">Juzgan</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5M10 20c0-3 3-5 6-5s6 2 6 5"/></svg></div><h3>Su mamá y su suegra</h3><p class="muted">Opinan sobre lo que manda y la hacen sentir juzgada.</p></div>
+      <div class="card io pre"><span class="w hi">Compara</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 7V5h8v2M3 12h18M12 12v8"/></svg></div><h3>Los compañeros de Adriano</h3><p class="muted">El niño intercambia lonchera en el recreo; ella mira qué llevan los demás.</p></div>
+      <div class="card io pre"><span class="w">Ideas</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg></div><h3>TikTok</h3><p class="muted">Para recetas. Abandona las que toman más de diez minutos.</p></div>
     </div>
 
     <div class="sec-head io pre" style="margin-top:36px">
@@ -629,6 +663,25 @@
     applyTheme(next); try{localStorage.setItem('kr-theme',next);}catch(e){}
   });
 
+
+  /* foto opcional: si existe katherine.png junto al archivo, reemplaza la ilustración */
+  var photo=document.getElementById('photo'), card=document.getElementById('avatarCard');
+  photo.addEventListener('load',function(){ photo.hidden=false; card.classList.add('has-photo'); });
+  photo.addEventListener('error',function(){ photo.remove(); });
+  if(photo.complete && photo.naturalWidth>0){ photo.hidden=false; card.classList.add('has-photo'); }
+
+  /* inclinación suave de la tarjeta */
+  if(!reduce && window.matchMedia('(hover:hover)').matches){
+    card.addEventListener('mousemove',function(e){ var r=card.getBoundingClientRect(); var x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5; card.style.transform='perspective(900px) rotateX('+(-y*6)+'deg) rotateY('+(x*8)+'deg)'; });
+    card.addEventListener('mouseleave',function(){ card.style.transform=''; });
+  }
+
+  /* barra de progreso e impresión */
+  var prog=document.getElementById('progress');
+  function onProg(){ var h=document.documentElement; var max=h.scrollHeight-h.clientHeight; prog.style.width=(max>0?(h.scrollTop/max)*100:0)+'%'; }
+  window.addEventListener('scroll',onProg,{passive:true}); onProg();
+  document.getElementById('printBtn').addEventListener('click',function(){ window.print(); });
+
   /* reveal al hacer scroll (estado en reposo visible si no hay IO) */
   var els=document.querySelectorAll('.io');
   if('IntersectionObserver' in window && !reduce){
@@ -682,6 +735,7 @@
       st='ok'; title='Nutritivo de verdad, pero él cree que es chocolate.'; text='Cumple sus cinco criterios en su orden. Lo compraría al paso en la bodega y, si le sale más barato, en pack semanal.'; vst.textContent='Le calza';
     }
     vst.className='st '+st; vtitle.textContent=title; vtext.textContent=text;
+    var v=document.getElementById('verdict'); v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop');
   }
   c.forEach(function(x){x.addEventListener('change',evalTest)}); price.addEventListener('input',evalTest); evalTest();
 
